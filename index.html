@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Monthly Ticket Stats</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --panel: #121a2b;
+        --muted: #93a4c7;
+        --text: #e7efff;
+        --border: rgba(255, 255, 255, 0.12);
+        --accent: #6aa7ff;
+        --danger: #ff6a6a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: radial-gradient(1200px 800px at 20% 10%, #182444, transparent),
+          radial-gradient(1200px 800px at 90% 30%, #1a2c52, transparent), var(--bg);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 16px 40px;
+      }
+      h1 {
+        margin: 0 0 14px;
+        font-size: 20px;
+        font-weight: 650;
+      }
+      .sub {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      @media (min-width: 760px) {
+        .grid {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+      }
+      .card {
+        background: color-mix(in srgb, var(--panel), transparent 0%);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      input,
+      select,
+      button,
+      textarea {
+        width: 100%;
+        font: inherit;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        outline: none;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: color-mix(in srgb, var(--accent), white 20%);
+        box-shadow: 0 0 0 4px rgba(106, 167, 255, 0.16);
+      }
+      button {
+        cursor: pointer;
+        background: linear-gradient(135deg, rgba(106, 167, 255, 0.95), rgba(120, 255, 214, 0.35));
+        border: 0;
+        font-weight: 650;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 12px;
+      }
+      @media (min-width: 760px) {
+        .row {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        direction: ltr;
+        text-align: left;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .meta {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .pill {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+        font-size: 12px;
+        direction: ltr;
+      }
+      .error {
+        color: var(--danger);
+        font-size: 13px;
+        margin-top: 10px;
+        white-space: pre-wrap;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 10px;
+        line-height: 1.6;
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .flex {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .flex > * {
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Monthly Ticket Stats</h1>
+      <p class="sub">
+        בחר/י חברה וטווח תאריכים (מהיומן), ואז שלח/י בקשת POST ל-API ותרא/י את ה-JSON שנשלח והתגובה.
+      </p>
+
+      <div class="grid card">
+        <div>
+          <label for="company">חברה</label>
+          <select id="company">
+            <option value="0x0000000000000032">ישיר</option>
+            <option value="0x0000000000000011">איילון</option>
+            <option value="0x0000000000000000">שירביט</option>
+          </select>
+          <div class="hint">
+            מיפוי לדוגמה:
+            <span class="pill">ישיר → 0x0000000000000032</span>
+          </div>
+        </div>
+
+        <div>
+          <label for="fromDate">מתאריך</label>
+          <input id="fromDate" type="date" />
+        </div>
+
+        <div>
+          <label for="toDate">עד תאריך</label>
+          <input id="toDate" type="date" />
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 12px">
+        <div class="flex">
+          <div>
+            <label for="endpoint">API Endpoint</label>
+            <input
+              id="endpoint"
+              type="url"
+              value="http://172.30.65.2/HelpE/Test/api/Ticket/GetMonthlyTicketStats"
+              spellcheck="false"
+              dir="ltr"
+            />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="sendBtn" type="button">שלח בקשה</button>
+          </div>
+        </div>
+
+        <div class="flex" style="margin-top: 12px">
+          <div>
+            <label for="authToken">Bearer Token (optional)</label>
+            <input
+              id="authToken"
+              type="password"
+              placeholder="Paste token here (will be sent as Authorization: Bearer …)"
+              spellcheck="false"
+              autocomplete="off"
+              dir="ltr"
+            />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <div class="hint" style="margin-top: 0">
+              מומלץ להשתמש ב-proxy בשרת ולא לשים Token בדפדפן.
+            </div>
+          </div>
+        </div>
+
+        <div class="hint">
+          אם השרת דורש Authorization, מומלץ לשים אותו בשרת-ביניים (backend/proxy) ולא בתוך HTML.
+          לבדיקות מקומיות אפשר להדביק Token בשדה למעלה — הוא יישלח ב-Header.
+        </div>
+
+        <div id="error" class="error" style="display: none"></div>
+      </div>
+
+      <div class="row">
+        <div class="card">
+          <div class="meta">
+            <div>Request JSON</div>
+            <div class="pill" id="reqPill">—</div>
+          </div>
+          <pre id="requestOut">{}</pre>
+        </div>
+        <div class="card">
+          <div class="meta">
+            <div>Response</div>
+            <div class="pill" id="resPill">—</div>
+          </div>
+          <pre id="responseOut">לחץ/י "שלח בקשה"…</pre>
+        </div>
+      </div>
+
+      <p class="small" style="margin-top: 12px">
+        הערה: אם את/ה פותח/ת את הקובץ ישירות (`file://`) ונתקל/ת בשגיאת CORS, הרץ/י שרת סטטי
+        (או השתמש/י ב-backend proxy). בדפדפנים רבים fetch ל-IP פנימי יחסם ללא CORS מתאים.
+      </p>
+    </div>
+
+    <!-- Optional local config (kept out of git via .gitignore) -->
+    <script src="./config.local.js"></script>
+
+    <script>
+      const els = {
+        company: document.getElementById("company"),
+        fromDate: document.getElementById("fromDate"),
+        toDate: document.getElementById("toDate"),
+        endpoint: document.getElementById("endpoint"),
+        authToken: document.getElementById("authToken"),
+        sendBtn: document.getElementById("sendBtn"),
+        requestOut: document.getElementById("requestOut"),
+        responseOut: document.getElementById("responseOut"),
+        reqPill: document.getElementById("reqPill"),
+        resPill: document.getElementById("resPill"),
+        error: document.getElementById("error"),
+      };
+
+      function setError(message) {
+        if (!message) {
+          els.error.style.display = "none";
+          els.error.textContent = "";
+          return;
+        }
+        els.error.style.display = "block";
+        els.error.textContent = message;
+      }
+
+      function yyyyMmDd(d) {
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      }
+
+      function initDefaults() {
+        // Defaults to August 2025 to match your example.
+        els.fromDate.value = "2025-08-01";
+        els.toDate.value = "2025-08-31";
+        // Load bearer token from local project config (if provided).
+        if (window.APP_CONFIG?.bearerToken && !els.authToken.value) {
+          els.authToken.value = String(window.APP_CONFIG.bearerToken);
+        }
+        renderRequest();
+      }
+
+      function buildPayload() {
+        return {
+          insCompanyId: els.company.value,
+          fromDate: els.fromDate.value,
+          toDate: els.toDate.value,
+        };
+      }
+
+      function renderRequest() {
+        const payload = buildPayload();
+        els.requestOut.textContent = JSON.stringify(payload, null, 2);
+        els.reqPill.textContent = payload.insCompanyId;
+      }
+
+      async function send() {
+        setError("");
+        els.resPill.textContent = "…";
+        els.responseOut.textContent = "שולח בקשה…";
+        els.sendBtn.disabled = true;
+
+        try {
+          const payload = buildPayload();
+          if (!payload.fromDate || !payload.toDate) {
+            throw new Error("נא לבחור fromDate ו-toDate.");
+          }
+
+          // Optional validation: make sure fromDate <= toDate
+          if (payload.fromDate > payload.toDate) {
+            throw new Error("fromDate חייב להיות קטן/שווה ל-toDate.");
+          }
+
+          renderRequest();
+
+          const headers = {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          };
+          const token = (els.authToken.value || "").trim();
+          if (token) headers.Authorization = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+          const res = await fetch(els.endpoint.value, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(payload),
+          });
+
+          els.resPill.textContent = `HTTP ${res.status}`;
+
+          const contentType = res.headers.get("content-type") || "";
+          const text = await res.text();
+
+          if (!res.ok) {
+            throw new Error(
+              `Request failed (HTTP ${res.status}).\n\nResponse:\n${text || "(empty)"}`
+            );
+          }
+
+          if (contentType.includes("application/json")) {
+            try {
+              const json = JSON.parse(text);
+              els.responseOut.textContent = JSON.stringify(json, null, 2);
+            } catch {
+              // JSON header but invalid JSON
+              els.responseOut.textContent = text;
+            }
+          } else {
+            els.responseOut.textContent = text;
+          }
+        } catch (e) {
+          setError(String(e?.message || e));
+          els.responseOut.textContent = "—";
+          els.resPill.textContent = "Error";
+        } finally {
+          els.sendBtn.disabled = false;
+        }
+      }
+
+      els.company.addEventListener("change", renderRequest);
+      els.fromDate.addEventListener("change", renderRequest);
+      els.toDate.addEventListener("change", renderRequest);
+      els.sendBtn.addEventListener("click", send);
+
+      initDefaults();
+    </script>
+  </body>
+</html>
