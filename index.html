@@ -207,9 +207,29 @@
           </div>
         </div>
 
+        <div class="flex" style="margin-top: 12px">
+          <div>
+            <label for="authToken">Bearer Token (optional)</label>
+            <input
+              id="authToken"
+              type="password"
+              placeholder="Paste token here (will be sent as Authorization: Bearer …)"
+              spellcheck="false"
+              autocomplete="off"
+              dir="ltr"
+            />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <div class="hint" style="margin-top: 0">
+              מומלץ להשתמש ב-proxy בשרת ולא לשים Token בדפדפן.
+            </div>
+          </div>
+        </div>
+
         <div class="hint">
           אם השרת דורש Authorization, מומלץ לשים אותו בשרת-ביניים (backend/proxy) ולא בתוך HTML.
-          אם בכל זאת תרצה/י לבדיקה מקומית, אפשר להוסיף Header בקוד JS (ראה/י הערה בתוך הקוד).
+          לבדיקות מקומיות אפשר להדביק Token בשדה למעלה — הוא יישלח ב-Header.
         </div>
 
         <div id="error" class="error" style="display: none"></div>
@@ -244,6 +264,7 @@
         fromDate: document.getElementById("fromDate"),
         toDate: document.getElementById("toDate"),
         endpoint: document.getElementById("endpoint"),
+        authToken: document.getElementById("authToken"),
         sendBtn: document.getElementById("sendBtn"),
         requestOut: document.getElementById("requestOut"),
         responseOut: document.getElementById("responseOut"),
@@ -310,9 +331,9 @@
           const headers = {
             "Content-Type": "application/json",
             Accept: "application/json",
-            // If you *must* test with auth in-browser, you can temporarily uncomment:
-            // Authorization: "Bearer <TOKEN>",
           };
+          const token = (els.authToken.value || "").trim();
+          if (token) headers.Authorization = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
           const res = await fetch(els.endpoint.value, {
             method: "POST",
