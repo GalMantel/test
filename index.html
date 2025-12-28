@@ -258,6 +258,9 @@
       </p>
     </div>
 
+    <!-- Optional local config (kept out of git via .gitignore) -->
+    <script src="./config.local.js"></script>
+
     <script>
       const els = {
         company: document.getElementById("company"),
@@ -292,6 +295,10 @@
         // Defaults to August 2025 to match your example.
         els.fromDate.value = "2025-08-01";
         els.toDate.value = "2025-08-31";
+        // Load bearer token from local project config (if provided).
+        if (window.APP_CONFIG?.bearerToken && !els.authToken.value) {
+          els.authToken.value = String(window.APP_CONFIG.bearerToken);
+        }
         renderRequest();
       }
 
