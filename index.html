@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Monthly Ticket Stats</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Fluent UI Web Components -->
+    <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
+
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+
+    <!-- Fluent UI Icons -->
+    <link rel="stylesheet" href="https://unpkg.com/@fluentui/svg-icons@1.1.238/icons.css" />
+
+    <style>
+      :root {
+        /* Fluent 2 Light Theme Colors */
+        --background-base: #f5f5f5;
+        --background-layer: #ffffff;
+        --background-card: #ffffff;
+        --background-card-hover: #f9f9f9;
+        --background-subtle: #fafafa;
+
+        --text-primary: #242424;
+        --text-secondary: #616161;
+        --text-tertiary: #8a8a8a;
+        --text-disabled: #bdbdbd;
+
+        --accent-primary: #0078d4;
+        --accent-secondary: #106ebe;
+        --accent-tertiary: #deecf9;
+
+        --border-subtle: #e0e0e0;
+        --border-default: #d1d1d1;
+        --border-strong: #c4c4c4;
+
+        --status-success: #107c10;
+        --status-warning: #ffb900;
+        --status-error: #d13438;
+
+        --shadow-ambient: rgba(0, 0, 0, 0.06);
+        --shadow-key: rgba(0, 0, 0, 0.12);
+
+        --radius-sm: 4px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+
+        --transition-fast: 0.1s ease;
+        --transition-normal: 0.2s ease;
+
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        background: var(--background-base);
+        color: var(--text-primary);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* App Shell */
+      .app-shell {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Header Bar - Fluent 2 Navigation */
+      .header-bar {
+        background: var(--background-layer);
+        border-bottom: 1px solid var(--border-subtle);
+        padding: 0 24px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+
+      .header-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .header-icon {
+        width: 20px;
+        height: 20px;
+        fill: var(--accent-primary);
+      }
+
+      /* Main Content Area */
+      .main-content {
+        flex: 1;
+        padding: 32px 24px 48px;
+        max-width: 900px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      /* Page Title */
+      .page-header {
+        margin-bottom: 32px;
+      }
+
+      .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 36px;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+      }
+
+      .page-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+
+      /* Fluent 2 Card */
+      .fluent-card {
+        background: var(--background-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin-bottom: 16px;
+        transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
+      }
+
+      .fluent-card:hover {
+        border-color: var(--border-default);
+        box-shadow: 0 2px 4px var(--shadow-ambient), 0 8px 16px var(--shadow-key);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+
+      .card-icon {
+        width: 28px;
+        height: 28px;
+        padding: 6px;
+        background: var(--accent-tertiary);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .card-icon svg {
+        width: 16px;
+        height: 16px;
+        fill: var(--accent-primary);
+      }
+
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      /* Form Elements */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      @media (min-width: 640px) {
+        .form-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .form-grid .full-width {
+          grid-column: 1 / -1;
+        }
+      }
+
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .field-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      .field-hint {
+        font-size: 12px;
+        color: var(--text-tertiary);
+        margin-top: 4px;
+      }
+
+      /* Fluent Select & Input Styling */
+      fluent-select,
+      fluent-text-field {
+        width: 100%;
+      }
+
+      fluent-select::part(control),
+      fluent-text-field::part(control) {
+        background: var(--background-subtle);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        min-height: 36px;
+        font-size: 14px;
+        transition: all var(--transition-fast);
+      }
+
+      fluent-select::part(control):hover,
+      fluent-text-field::part(control):hover {
+        background: var(--background-card-hover);
+        border-color: var(--border-strong);
+      }
+
+      fluent-select::part(control):focus-within,
+      fluent-text-field::part(control):focus-within {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 1px var(--accent-primary);
+        outline: none;
+      }
+
+      fluent-select::part(listbox) {
+        background: var(--background-card);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        box-shadow: 0 8px 16px var(--shadow-key);
+        padding: 4px;
+      }
+
+      fluent-option {
+        color: var(--text-primary);
+        border-radius: var(--radius-sm);
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+
+      fluent-option:hover {
+        background: var(--background-card-hover);
+      }
+
+      fluent-option[aria-selected="true"] {
+        background: var(--accent-tertiary);
+        color: var(--accent-secondary);
+      }
+
+      /* Date Presets - Pill Buttons */
+      .presets-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .preset-btn {
+        padding: 6px 14px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: var(--background-subtle);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        white-space: nowrap;
+      }
+
+      .preset-btn:hover {
+        background: var(--background-card-hover);
+        border-color: var(--border-default);
+        color: var(--text-primary);
+      }
+
+      .preset-btn:focus-visible {
+        outline: 2px solid var(--accent-primary);
+        outline-offset: 2px;
+      }
+
+      .preset-btn.active {
+        background: var(--accent-primary);
+        border-color: var(--accent-primary);
+        color: #ffffff;
+      }
+
+      /* Date Range Input */
+      .date-range-input {
+        width: 100%;
+        font-family: inherit;
+        font-size: 14px;
+        color: var(--text-primary);
+        background: var(--background-subtle);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        min-height: 36px;
+        outline: none;
+        transition: all var(--transition-fast);
+        text-align: center;
+        direction: ltr;
+      }
+
+      .date-range-input:hover {
+        background: var(--background-card-hover);
+        border-color: var(--border-strong);
+      }
+
+      .date-range-input:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 1px var(--accent-primary);
+      }
+
+      .date-range-input::placeholder {
+        color: var(--text-tertiary);
+      }
+
+      /* Action Button */
+      .action-section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      fluent-button {
+        width: 100%;
+      }
+
+      fluent-button::part(control) {
+        background: var(--accent-primary);
+        color: #ffffff;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        font-size: 14px;
+        min-height: 40px;
+        padding: 0 20px;
+        transition: all var(--transition-fast);
+      }
+
+      fluent-button::part(control):hover {
+        background: var(--accent-secondary);
+      }
+
+      fluent-button::part(control):active {
+        background: #005a9e;
+        transform: scale(0.98);
+      }
+
+      fluent-button[disabled]::part(control) {
+        background: var(--border-default);
+        color: var(--text-disabled);
+      }
+
+      /* Error Display */
+      .error-banner {
+        display: none;
+        padding: 14px 16px;
+        background: rgba(196, 43, 28, 0.12);
+        border: 1px solid rgba(196, 43, 28, 0.3);
+        border-radius: var(--radius-md);
+        color: var(--status-error);
+        font-size: 14px;
+        line-height: 1.5;
+        border-right: 3px solid #c42b1c;
+      }
+
+      .error-banner.visible {
+        display: block;
+      }
+
+      /* Results Card */
+      .results-card {
+        background: var(--background-layer);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+
+      .results-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: var(--background-subtle);
+        border-bottom: 1px solid var(--border-subtle);
+      }
+
+      .results-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .results-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: 12px;
+        background: var(--background-card);
+        color: var(--text-tertiary);
+        font-size: 12px;
+        font-weight: 500;
+        direction: ltr;
+      }
+
+      .results-body {
+        padding: 24px 20px;
+        min-height: 120px;
+      }
+
+      .results-placeholder {
+        color: var(--text-tertiary);
+        font-size: 14px;
+        text-align: center;
+        padding: 32px 0;
+      }
+
+      .results-content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .result-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--background-subtle);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-subtle);
+      }
+
+      .result-label {
+        font-size: 15px;
+        color: var(--text-secondary);
+      }
+
+      .result-value {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--accent-primary);
+      }
+
+      /* Chart */
+      .chart-wrap {
+        margin-top: 16px;
+      }
+
+      /* Loading State */
+      .loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 32px 0;
+      }
+
+      .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid var(--border-default);
+        border-top-color: var(--accent-primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-text {
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+
+      /* Flatpickr Light Theme - Fluent 2 Style */
+      .flatpickr-calendar {
+        background: var(--background-card) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: var(--radius-lg) !important;
+        box-shadow: 0 4px 16px var(--shadow-key) !important;
+        font-family: "Segoe UI Variable", "Segoe UI", sans-serif !important;
+        padding: 8px !important;
+      }
+
+      .flatpickr-months {
+        background: transparent !important;
+        padding: 8px 4px 12px !important;
+      }
+
+      .flatpickr-month,
+      .flatpickr-current-month,
+      .flatpickr-monthDropdown-months {
+        color: var(--text-primary) !important;
+        fill: var(--text-primary) !important;
+        background: transparent !important;
+        font-weight: 600 !important;
+      }
+
+      .flatpickr-monthDropdown-months {
+        background: var(--background-card) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: var(--radius-sm) !important;
+      }
+
+      .flatpickr-weekdays {
+        background: transparent !important;
+        padding: 8px 0 !important;
+      }
+
+      .flatpickr-weekday {
+        color: var(--text-tertiary) !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+      }
+
+      .flatpickr-day {
+        color: var(--text-primary) !important;
+        border-radius: var(--radius-sm) !important;
+        background: transparent !important;
+      }
+
+      .flatpickr-day:hover {
+        background: var(--accent-tertiary) !important;
+        border-color: transparent !important;
+      }
+
+      .flatpickr-day.today {
+        border-color: var(--accent-primary) !important;
+      }
+
+      .flatpickr-day.selected,
+      .flatpickr-day.startRange,
+      .flatpickr-day.endRange {
+        background: var(--accent-primary) !important;
+        border-color: var(--accent-primary) !important;
+        color: #ffffff !important;
+      }
+
+      .flatpickr-day.inRange {
+        background: var(--accent-tertiary) !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+      }
+
+      .flatpickr-day.startRange {
+        border-radius: var(--radius-sm) 0 0 var(--radius-sm) !important;
+      }
+
+      .flatpickr-day.endRange {
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
+      }
+
+      .flatpickr-day.prevMonthDay,
+      .flatpickr-day.nextMonthDay {
+        color: var(--text-disabled) !important;
+      }
+
+      .flatpickr-prev-month,
+      .flatpickr-next-month {
+        fill: var(--text-secondary) !important;
+        padding: 8px !important;
+        border-radius: var(--radius-sm) !important;
+      }
+
+      .flatpickr-prev-month:hover,
+      .flatpickr-next-month:hover {
+        background: var(--accent-tertiary) !important;
+      }
+
+      /* Responsive */
+      @media (max-width: 639px) {
+        .header-bar {
+          padding: 0 16px;
+        }
+
+        .main-content {
+          padding: 24px 16px 40px;
+        }
+
+        .page-title {
+          font-size: 24px;
+          line-height: 32px;
+        }
+
+        .fluent-card {
+          padding: 20px;
+        }
+
+        .presets {
+          gap: 6px;
+        }
+
+        .preset-btn {
+          padding: 5px 12px;
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Header Bar -->
+      <header class="header-bar">
+        <div class="header-title">
+          <svg class="header-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M5.5 3A2.5 2.5 0 003 5.5v9A2.5 2.5 0 005.5 17h9a2.5 2.5 0 002.5-2.5v-9A2.5 2.5 0 0014.5 3h-9zM4 5.5C4 4.67 4.67 4 5.5 4h9c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5h-9A1.5 1.5 0 014 14.5v-9zM7 7.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5zm0 2.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5zm.5 2a.5.5 0 000 1h3a.5.5 0 000-1h-3z"
+            />
+          </svg>
+          <span>Ticket Statistics</span>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+          <h1 class="page-title">דוח נתוני שיחות בוט</h1>
+          <p class="page-subtitle">הצג סטטיסטיקות שיחות לפי חברה וטווח תאריכים</p>
+        </div>
+
+        <!-- Query Card -->
+        <div class="fluent-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M5.5 3a.5.5 0 000 1h5a.5.5 0 000-1h-5zM5 5.5a.5.5 0 01.5-.5h5a.5.5 0 010 1h-5a.5.5 0 01-.5-.5zM5.5 7a.5.5 0 000 1h3a.5.5 0 000-1h-3z"
+                />
+              </svg>
+            </div>
+            <span class="card-title">פרמטרי שאילתה</span>
+          </div>
+
+          <div class="form-grid">
+            <!-- Company Select -->
+            <div class="field-group">
+              <label class="field-label" for="company">חברה</label>
+              <fluent-select id="company">
+                <fluent-option value="all">כל החברות</fluent-option>
+                <fluent-option value="0x0000000000000032">ישיר</fluent-option>
+                <fluent-option value="0x0000000000000011">איילון</fluent-option>
+                <fluent-option value="0x0000000000000042">שירביט</fluent-option>
+                <fluent-option value="0x0000000000000001">הראל</fluent-option>
+                <fluent-option value="0x0000000000000012">שומרה</fluent-option>
+              </fluent-select>
+            </div>
+
+            <!-- Date Range -->
+            <div class="field-group">
+              <label class="field-label">טווח תאריכים</label>
+              <div class="presets-container">
+                <div class="presets">
+                  <button type="button" class="preset-btn" data-preset="thisMonth">החודש</button>
+                  <button type="button" class="preset-btn" data-preset="lastMonth">חודש קודם</button>
+                  <button type="button" class="preset-btn" data-preset="last3Months">3 חודשים</button>
+                  <button type="button" class="preset-btn" data-preset="last6Months">6 חודשים</button>
+                  <button type="button" class="preset-btn" data-preset="thisYear">השנה</button>
+                  <button type="button" class="preset-btn" data-preset="lastYear">שנה קודמת</button>
+                </div>
+                <input
+                  id="dateRange"
+                  type="text"
+                  class="date-range-input"
+                  placeholder="בחר טווח או לחץ על כפתור מהיר"
+                  readonly
+                />
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="field-group full-width action-section">
+              <!--<input id="endpoint" type="hidden" value="/ticket-proxy/tickets" />-->
+              <input id="endpoint" type="hidden" value="/tickets" />
+              <fluent-button id="sendBtn" appearance="accent">הצג נתונים</fluent-button>
+              <div id="error" class="error-banner"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="results-card">
+          <div class="results-header">
+            <span class="results-title">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v9a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12.5v-9zM3.5 3a.5.5 0 00-.5.5v9a.5.5 0 00.5.5h9a.5.5 0 00.5-.5v-9a.5.5 0 00-.5-.5h-9z"
+                />
+                <path
+                  d="M5 5.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v5a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v-5zM9 7.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v3a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v-3z"
+                />
+              </svg>
+              תוצאות
+            </span>
+            <span id="resultsBadge" class="results-badge">ממתין לנתונים</span>
+          </div>
+          <div class="results-body">
+            <div id="responseOut" class="results-placeholder">בחר פרמטרים ולחץ על "הצג נתונים"</div>
+            <div class="chart-wrap">
+              <canvas id="resultsChart" style="width: 100%; height: 300px; display: none;"></canvas>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/he.js"></script>
+
+    <script type="module">
+      import { baseLayerLuminance, StandardLuminance } from "https://unpkg.com/@fluentui/web-components";
+
+      // Set light mode
+      baseLayerLuminance.setValueFor(document.body, StandardLuminance.LightMode);
+
+      const els = {
+        company: document.getElementById("company"),
+        dateRange: document.getElementById("dateRange"),
+        endpoint: document.getElementById("endpoint"),
+        sendBtn: document.getElementById("sendBtn"),
+        responseOut: document.getElementById("responseOut"),
+        resultsBadge: document.getElementById("resultsBadge"),
+        error: document.getElementById("error"),
+        presetBtns: document.querySelectorAll(".preset-btn"),
+        chartCanvas: document.getElementById("resultsChart"),
+      };
+
+      // Store selected dates
+      let selectedDates = { from: null, to: null };
+
+      // Chart
+      let resultsChart = null;
+
+      function hideChart() {
+        if (resultsChart) {
+          resultsChart.destroy();
+          resultsChart = null;
+        }
+        els.chartCanvas.style.display = "none";
+      }
+
+      function renderChart(data) {
+        const labels = ["בוט", "וואטסאפ", "טלפון"];
+        const values = [data.bot ?? 0, data.whatsapp ?? 0, data.phone ?? 0];
+
+        els.chartCanvas.style.display = "block";
+        const ctx = els.chartCanvas.getContext("2d");
+
+        if (resultsChart) resultsChart.destroy();
+        resultsChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "כמות",
+                data: values,
+                backgroundColor: ["#0078d4", "#106ebe", "#deecf9"],
+                borderColor: ["#0078d4", "#106ebe", "#9cc8ef"],
+                borderWidth: 1,
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { rtl: true },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { precision: 0 },
+              },
+            },
+          },
+        });
+      }
+
+      // Format date as dd/mm/yyyy
+      function formatDate(date) {
+        const d = date.getDate().toString().padStart(2, "0");
+        const m = (date.getMonth() + 1).toString().padStart(2, "0");
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+      }
+
+      // Get preset date ranges
+      function getPresetRange(preset) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+
+        switch (preset) {
+          case "thisMonth":
+            return {
+              from: new Date(year, month, 1),
+              to: new Date(year, month + 1, 0),
+            };
+          case "lastMonth":
+            return {
+              from: new Date(year, month - 1, 1),
+              to: new Date(year, month, 0),
+            };
+          case "last3Months":
+            return {
+              from: new Date(year, month - 2, 1),
+              to: new Date(year, month + 1, 0),
+            };
+          case "last6Months":
+            return {
+              from: new Date(year, month - 5, 1),
+              to: new Date(year, month + 1, 0),
+            };
+          case "thisYear":
+            return {
+              from: new Date(year, 0, 1),
+              to: new Date(year, month + 1, 0),
+            };
+          case "lastYear":
+            return {
+              from: new Date(year - 1, 0, 1),
+              to: new Date(year - 1, 11, 31),
+            };
+          default:
+            return null;
+        }
+      }
+
+      // Update active preset button
+      function updateActivePreset(activePreset) {
+        els.presetBtns.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.preset === activePreset);
+        });
+      }
+
+      // Format range display text
+      function formatRangeDisplay(from, to) {
+        if (!from || !to) return "";
+        return `${formatDate(from)}  —  ${formatDate(to)}`;
+      }
+
+      // Set date range and update UI
+      function setDateRange(from, to, presetName = null) {
+        selectedDates.from = from;
+        selectedDates.to = to;
+
+        if (rangePicker) {
+          rangePicker.setDate([from, to], false);
+          els.dateRange.value = formatRangeDisplay(from, to);
+        }
+
+        updateActivePreset(presetName);
+      }
+
+      // Initialize Flatpickr in range mode
+      const rangePicker = flatpickr("#dateRange", {
+        locale: "he",
+        mode: "range",
+        dateFormat: "d/m/Y",
+        allowInput: false,
+        showMonths: 2,
+        onChange: function (dates) {
+          if (dates.length === 2) {
+            selectedDates.from = dates[0];
+            selectedDates.to = dates[1];
+            els.dateRange.value = formatRangeDisplay(dates[0], dates[1]);
+            updateActivePreset(null);
+          }
+        },
+        onReady: function (dates, dateStr, instance) {
+          if (dates.length === 2) {
+            instance.input.value = formatRangeDisplay(dates[0], dates[1]);
+          }
+        },
+      });
+
+      // Preset button click handlers
+      els.presetBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const preset = btn.dataset.preset;
+          const range = getPresetRange(preset);
+          if (range) {
+            setDateRange(range.from, range.to, preset);
+          }
+        });
+      });
+
+      // Set default to current month (full range)
+      const defaultRange = getPresetRange("thisMonth");
+      if (defaultRange) setDateRange(defaultRange.from, defaultRange.to, "thisMonth");
+
+      function setError(message) {
+        if (!message) {
+          els.error.classList.remove("visible");
+          els.error.textContent = "";
+          return;
+        }
+        els.error.classList.add("visible");
+        els.error.textContent = message;
+      }
+
+      function updateBadge(text) {
+        els.resultsBadge.textContent = text;
+      }
+
+      function showLoading() {
+        hideChart();
+        els.responseOut.innerHTML = `
+          <div class="loading">
+            <div class="spinner"></div>
+            <span class="loading-text">טוען נתונים...</span>
+          </div>
+        `;
+        els.responseOut.className = "";
+        updateBadge("טוען...");
+      }
+
+      function showResults(data) {
+        const labels = {
+          bot: "בוט",
+          whatsapp: "וואטסאפ",
+          phone: "טלפון",
+        };
+
+        const html = Object.keys(data)
+          .map(
+            (key) => `
+            <div class="result-row">
+              <span class="result-label">${labels[key] || key}</span>
+              <span class="result-value">${Number(data[key] || 0).toLocaleString()}</span>
+            </div>
+          `
+          )
+          .join("");
+
+        els.responseOut.innerHTML = html;
+        els.responseOut.className = "results-content";
+
+        const total = Object.values(data).reduce((a, b) => a + Number(b || 0), 0);
+        updateBadge(`${total.toLocaleString()} סה"כ`);
+
+        renderChart({
+          bot: Number(data.bot || 0),
+          whatsapp: Number(data.whatsapp || 0),
+          phone: Number(data.phone || 0),
+        });
+      }
+
+      function showPlainText(text) {
+        hideChart();
+        els.responseOut.innerHTML = `<div class="result-row"><span class="result-label" style="white-space: pre-wrap;">${text}</span></div>`;
+        els.responseOut.className = "results-content";
+        updateBadge("הושלם");
+      }
+
+      function showPlaceholder() {
+        hideChart();
+        els.responseOut.textContent = 'בחר פרמטרים ולחץ על "הצג נתונים"';
+        els.responseOut.className = "results-placeholder";
+        updateBadge("ממתין לנתונים");
+      }
+
+      function buildPayload() {
+        return {
+          insCompanyId: els.company.value,
+          fromDate: selectedDates.from ? formatDate(selectedDates.from) : "",
+          toDate: selectedDates.to ? formatDate(selectedDates.to) : "",
+        };
+      }
+
+      const companyMap = {
+        "ישיר": "0x0000000000000032",
+        "איילון": "0x0000000000000011",
+        "שירביט": "0x0000000000000042",
+        "הראל": "0x0000000000000001",
+        "שומרה": "0x0000000000000012",
+      };
+
+      async function send() {
+        setError("");
+        showLoading();
+        els.sendBtn.disabled = true;
+
+        try {
+          const payload = buildPayload();
+          if (!payload.fromDate || !payload.toDate) {
+            throw new Error("נא לבחור טווח תאריכים.");
+          }
+
+          const companies = payload.insCompanyId === "all" ? Object.values(companyMap) : [payload.insCompanyId];
+
+          let finalData = { bot: 0, whatsapp: 0, phone: 0 };
+
+          for (const companyId of companies) {
+            const res = await fetch(els.endpoint.value, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({ ...payload, insCompanyId: companyId }),
+            });
+
+            if (!res.ok) {
+              const text = await res.text();
+              throw new Error(`בקשה נכשלה לחברה ${companyId} (HTTP ${res.status}):\n${text || "(ריק)"}`);
+            }
+
+            const text = await res.text();
+            try {
+              const json = JSON.parse(text);
+              // Sum results
+              Object.keys(finalData).forEach((key) => {
+                if (json[key] != null) finalData[key] += Number(json[key] || 0);
+              });
+            } catch {
+              // If response is plain text, just show it (stop summing)
+              showPlainText(text);
+              return;
+            }
+          }
+
+          showResults(finalData);
+        } catch (e) {
+          setError(String(e?.message || e));
+          showPlaceholder();
+        } finally {
+          els.sendBtn.disabled = false;
+        }
+      }
+
+      els.sendBtn.addEventListener("click", send);
+    </script>
+  </body>
+</html>
